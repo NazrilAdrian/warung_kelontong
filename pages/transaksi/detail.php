@@ -19,9 +19,9 @@ if ($conn && $idTransaksi > 0) {
 
     $transaction = fetch_one(
         'SELECT t.*, u.nama_lengkap
-         FROM transaksi t
-         JOIN users u ON u.id_user = t.id_user
-         WHERE t.id_transaksi = ?' . $whereKasir,
+            FROM transaksi t
+            JOIN users u ON u.id_user = t.id_user
+            WHERE t.id_transaksi = ?' . $whereKasir,
         $types,
         $params
     );
@@ -29,10 +29,10 @@ if ($conn && $idTransaksi > 0) {
     if ($transaction) {
         $details = fetch_all(
             'SELECT dt.*, p.nama_produk, p.kode_produk, p.satuan
-             FROM detail_transaksi dt
-             JOIN produk p ON p.id_produk = dt.id_produk
-             WHERE dt.id_transaksi = ?
-             ORDER BY dt.id_detail ASC',
+                FROM detail_transaksi dt
+                JOIN produk p ON p.id_produk = dt.id_produk
+                WHERE dt.id_transaksi = ?
+                ORDER BY dt.id_detail ASC',
             'i',
             [$idTransaksi]
         );
