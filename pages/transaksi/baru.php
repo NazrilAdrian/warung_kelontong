@@ -44,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'subtotal' => $newQty * (float) $produk['harga_jual'],
                 ];
                 set_cart_items($cart);
-                add_flash('success', $produk['nama_produk'] . ' ditambahkan ke keranjang.');
+                $satuanText = !empty($produk['satuan']) ? ' ' . $produk['satuan'] : '';
+                add_flash('success', $produk['nama_produk'] . ' ditambahkan. Sekarang ada ' . $newQty . $satuanText . ' di keranjang.');
             }
         }
 

@@ -9,6 +9,7 @@
 
 .qty-input {
     max-width: 90px;
+    min-width: 70px;
 }
 
 .sales-profit-card {
