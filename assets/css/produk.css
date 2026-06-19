@@ -27,9 +27,14 @@
     height: 30px;
 }
 
+.search-row .form-select {
+    height: 36px;
+    border: 1px solid #a9a9a9;
+}
+
 .search-button {
     width: 83px;
-    height: 30px;
+    height: 36px;
     padding: 2px 8px;
 }
 

@@ -3,28 +3,52 @@ require_once __DIR__ . '/../../includes/auth_check.php';
 require_once __DIR__ . '/../../includes/sidebar.php';
 
 $canManage = is_owner_or_admin();
+$kategoriFilter = (int) ($_GET['kategori'] ?? 0);
 $keyword = trim($_GET['q'] ?? '');
+$stokKritis = $_GET['kritis'] ?? '';
+
+$kategoriFilterResult = $conn->query(
+    "SELECT id_kategori, nama_kategori
+     FROM kategori
+     ORDER BY nama_kategori"
+);
+
+$sql = "
+    SELECT p.*, k.nama_kategori
+    FROM produk p
+    JOIN kategori k ON p.id_kategori = k.id_kategori
+    WHERE 1=1
+";
+
+$params = [];
+$types = '';
 
 if ($keyword !== '') {
-    $like = '%' . $keyword . '%';
-    $stmt = $conn->prepare("
-        SELECT p.*, k.nama_kategori
-        FROM produk p
-        JOIN kategori k ON p.id_kategori = k.id_kategori
-        WHERE p.nama_produk LIKE ?
-        ORDER BY p.nama_produk ASC
-    ");
-    $stmt->bind_param('s', $like);
-    $stmt->execute();
-    $produkResult = $stmt->get_result();
-} else {
-    $produkResult = $conn->query("
-        SELECT p.*, k.nama_kategori
-        FROM produk p
-        JOIN kategori k ON p.id_kategori = k.id_kategori
-        ORDER BY p.nama_produk ASC
-    ");
+    $sql .= " AND p.nama_produk LIKE ?";
+    $params[] = '%' . $keyword . '%';
+    $types .= 's';
 }
+
+if ($kategoriFilter > 0) {
+    $sql .= " AND p.id_kategori = ?";
+    $params[] = $kategoriFilter;
+    $types .= 'i';
+}
+
+if ($stokKritis === '1') {
+    $sql .= " AND p.stok <= p.stok_minimum";
+}
+
+$sql .= " ORDER BY p.nama_produk ASC";
+
+$stmt = $conn->prepare($sql);
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$produkResult = $stmt->get_result();
 
 $kategoriResult = null;
 if ($canManage) {
@@ -40,6 +64,27 @@ render_page_start('Produk & Kategori', 'produk', ['assets/css/produk.css']);
         <div class="input-icon flex-grow-1">
             <i class="bi bi-search"></i>
             <input class="form-control" type="search" name="q" value="<?= e($keyword); ?>" placeholder="Cari produk">
+        </div>
+        <div>
+            <select name="kategori" class="form-select">
+                <option value="0">Semua Kategori</option>
+
+                <?php while($kat = $kategoriFilterResult->fetch_assoc()): ?>
+                    <option
+                        value="<?= $kat['id_kategori']; ?>"
+                        <?= $kategoriFilter == $kat['id_kategori'] ? 'selected' : ''; ?>>
+                        <?= e($kat['nama_kategori']); ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
+        </div>
+        <div>
+            <select name="kritis" class="form-select">
+                <option value="">Semua Jenis Stok</option>
+                <option value="1" <?= $stokKritis === '1' ? 'selected' : ''; ?>>
+                    Stok Kritis
+                </option>
+            </select>
         </div>
         <button class="btn btn-primary search-button" type="submit">Cari</button>
     </form>
